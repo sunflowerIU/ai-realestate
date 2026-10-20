@@ -1,0 +1,2 @@
+export type USER_ROLE = "PLATFORM_ADMIN" | "AGENT";
+export type USER_STATUS = "ACTIVE" | "SUSPENDED" | "BANNED";

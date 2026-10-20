@@ -14,6 +14,7 @@ import type { StringValue } from "ms";
 import type { RefreshInput } from "./schemas/refresh.schema.js";
 import type { LogoutInput } from "./schemas/logout.schema.js";
 import { Prisma } from "../../database/prisma-client.js";
+import type { USER_ROLE } from "../users/types/user.types.js";
 
 @Injectable()
 export class AuthService {
@@ -26,53 +27,53 @@ export class AuthService {
     private readonly sessions: RefreshSessionRepository,
   ) {}
 
-  async register(input: RegisterInput) {
-    const email = input.email.trim().toLowerCase();
+  // async register(input: RegisterInput) {
+  //   const email = input.email.trim().toLowerCase();
 
-    const existingUser = await this.usersService.findByEmail(email);
+  //   const existingUser = await this.usersService.findByEmail(email);
 
-    if (existingUser) {
-      throw new AppError(
-        ErrorCode.CONFLICT,
-        "An account with this email exists already.",
-        409,
-      );
-    }
+  //   if (existingUser) {
+  //     throw new AppError(
+  //       ErrorCode.CONFLICT,
+  //       "An account with this email exists already.",
+  //       409,
+  //     );
+  //   }
 
-    const passwordHash = await this.passwordService.hash(input.password);
+  //   const passwordHash = await this.passwordService.hash(input.password);
 
-    try {
-      const user = await this.usersService.create({
-        name: input.name,
-        email: input.email,
-        passwordHash,
-      });
+  //   try {
+  //     const user = await this.usersService.create({
+  //       name: input.name,
+  //       email: input.email,
+  //       passwordHash,
+  //     });
 
-      const tokens = await this.createSession(user.id);
+  //     const tokens = await this.createSession(user.id);
 
-      return {
-        id: user.id,
-        name: user.name,
-        email: user.email,
-        status: user.status,
-        createdAt: user.createdAt,
-        ...tokens,
-      };
-    } catch (error) {
-      if (
-        error instanceof Prisma.PrismaClientKnownRequestError &&
-        error.code === "P2002"
-      ) {
-        throw new AppError(
-          ErrorCode.CONFLICT,
-          "An account with this email already exists",
-          409,
-        );
-      }
+  //     return {
+  //       id: user.id,
+  //       name: user.name,
+  //       email: user.email,
+  //       status: user.status,
+  //       createdAt: user.createdAt,
+  //       ...tokens,
+  //     };
+  //   } catch (error) {
+  //     if (
+  //       error instanceof Prisma.PrismaClientKnownRequestError &&
+  //       error.code === "P2002"
+  //     ) {
+  //       throw new AppError(
+  //         ErrorCode.CONFLICT,
+  //         "An account with this email already exists",
+  //         409,
+  //       );
+  //     }
 
-      throw error;
-    }
-  }
+  //     throw error;
+  //   }
+  // }
 
   //
   async login(input: LoginInput) {
@@ -97,7 +98,7 @@ export class AuthService {
       throw this.invalidCredentials();
     }
 
-    const tokens = await this.createSession(user.id);
+    const tokens = await this.createSession(user.id, user.role);
 
     return { user: this.tosafeUser(user), ...tokens };
   }
@@ -145,6 +146,7 @@ export class AuthService {
     status: string;
     createdAt: Date;
     email: string;
+    role: string;
   }) {
     return {
       id: user.id,
@@ -152,6 +154,7 @@ export class AuthService {
       email: user.email,
       status: user.status,
       createdAt: user.createdAt,
+      role: user.role,
     };
   }
 
@@ -159,8 +162,9 @@ export class AuthService {
   private async createAccessToken(
     userId: string,
     sessionId: string,
+    role: USER_ROLE,
   ): Promise<string> {
-    const payload: AccessTokenPayload = { sub: userId, sessionId };
+    const payload: AccessTokenPayload = { sub: userId, sessionId, role };
 
     const expiresIn = this.config.getOrThrow<StringValue>("JWT_ACCESS_TTL");
 
@@ -168,7 +172,7 @@ export class AuthService {
   }
 
   ////////sessions///////
-  private async createSession(userId: string) {
+  private async createSession(userId: string, role: USER_ROLE) {
     const refreshToken = this.refreshTokens.generate();
 
     const tokenHash = this.refreshTokens.hash(refreshToken);
@@ -183,7 +187,7 @@ export class AuthService {
       expiresAt,
     });
 
-    const accessToken = await this.createAccessToken(userId, session.id);
+    const accessToken = await this.createAccessToken(userId, session.id, role);
 
     return {
       accessToken,
@@ -224,6 +228,7 @@ export class AuthService {
     const accessToken = await this.createAccessToken(
       session.userId,
       session.id,
+      session.user.role,
     );
 
     return {

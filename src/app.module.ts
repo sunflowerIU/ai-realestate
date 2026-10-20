@@ -10,6 +10,7 @@ import { HealthModule } from "./health/health.module.js";
 import { createLoggerConfig } from "./logging.js";
 import { AuthModule } from "./modules/auth/auth.module.js";
 import { UsersModule } from "./modules/users/users.module.js";
+import { AdminAgentsModule } from "./modules/admin/agents/admin-agents.module.js";
 
 @Module({
   imports: [
@@ -28,6 +29,7 @@ import { UsersModule } from "./modules/users/users.module.js";
     HealthModule,
     AuthModule,
     UsersModule,
+    AdminAgentsModule,
   ],
   providers: [{ provide: APP_FILTER, useClass: GlobalExceptionFilter }],
 })

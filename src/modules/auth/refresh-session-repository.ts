@@ -59,4 +59,17 @@ export class RefreshSessionRepository {
       },
     });
   }
+
+  //
+  revokeAllForUser(userId: string) {
+    return this.db.refreshSession.updateMany({
+      where: {
+        userId,
+        revokedAt: null,
+      },
+      data: {
+        revokedAt: new Date(),
+      },
+    });
+  }
 }

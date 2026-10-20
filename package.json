@@ -10,6 +10,7 @@
   },
   "scripts": {
     "prebuild": "prisma generate",
+    "admin:create": "tsx src/scripts/create-admin.ts",
     "build": "nest build",
     "dev": "prisma generate && nest start --watch",
     "dev:api": "prisma generate && nest start --watch",

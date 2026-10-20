@@ -28,12 +28,11 @@ import { Public } from "./decorators/public.decorator.js";
 export class AuthController {
   constructor(private readonly authService: AuthService) {}
 
-  @Post("register")
-  @Public()
-  register(@Body(new ZodValidationPipe(registerSchema)) input: RegisterInput) {
-    return this.authService.register(input);
-  }
-
+  // @Post("register")
+  // @Public()
+  // register(@Body(new ZodValidationPipe(registerSchema)) input: RegisterInput) {
+  //   return this.authService.register(input);
+  // }
   @Post("login")
   @Public()
   login(@Body(new ZodValidationPipe(loginSchema)) input: LoginInput) {
