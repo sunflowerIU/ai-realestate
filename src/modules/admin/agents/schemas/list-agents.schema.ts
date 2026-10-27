@@ -5,6 +5,7 @@ import { paginationQuerySchema } from "../../../../common/pagination/pagination.
 
 export const listAgentsSchema = paginationQuerySchema.extend({
   search: z.string().trim().min(1).max(100).optional(),
-});
+  status: z.enum(["ACTIVE", "SUSPENDED", "BANNED"]).optional(),
+}).strict();
 
 export type ListAgentsInput = z.infer<typeof listAgentsSchema>;

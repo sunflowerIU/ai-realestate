@@ -7,4 +7,4 @@ export function createPrismaClient(databaseUrl: string): PrismaClient {
 }
 
 export { PrismaClient, Prisma } from "../generated/prisma/client.js";
-export type { User, RefreshSession } from "../generated/prisma/client.js";
+export type { User, RefreshSession, Property, BuyerRequirement, Deal } from "../generated/prisma/client.js";

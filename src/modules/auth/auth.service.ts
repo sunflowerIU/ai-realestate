@@ -8,12 +8,10 @@ import { ConfigService } from "@nestjs/config";
 import { RefreshTokenService } from "./refresh-token.service.js";
 import { RefreshSessionRepository } from "./refresh-session-repository.js";
 import type { AccessTokenPayload } from "./types/access-token-payload.js";
-import type { RegisterInput } from "./schemas/register.schema.js";
 import type { LoginInput } from "./schemas/login.schema.js";
 import type { StringValue } from "ms";
 import type { RefreshInput } from "./schemas/refresh.schema.js";
 import type { LogoutInput } from "./schemas/logout.schema.js";
-import { Prisma } from "../../database/prisma-client.js";
 import type { USER_ROLE } from "../users/types/user.types.js";
 
 @Injectable()
@@ -26,54 +24,6 @@ export class AuthService {
     private readonly refreshTokens: RefreshTokenService,
     private readonly sessions: RefreshSessionRepository,
   ) {}
-
-  // async register(input: RegisterInput) {
-  //   const email = input.email.trim().toLowerCase();
-
-  //   const existingUser = await this.usersService.findByEmail(email);
-
-  //   if (existingUser) {
-  //     throw new AppError(
-  //       ErrorCode.CONFLICT,
-  //       "An account with this email exists already.",
-  //       409,
-  //     );
-  //   }
-
-  //   const passwordHash = await this.passwordService.hash(input.password);
-
-  //   try {
-  //     const user = await this.usersService.create({
-  //       name: input.name,
-  //       email: input.email,
-  //       passwordHash,
-  //     });
-
-  //     const tokens = await this.createSession(user.id);
-
-  //     return {
-  //       id: user.id,
-  //       name: user.name,
-  //       email: user.email,
-  //       status: user.status,
-  //       createdAt: user.createdAt,
-  //       ...tokens,
-  //     };
-  //   } catch (error) {
-  //     if (
-  //       error instanceof Prisma.PrismaClientKnownRequestError &&
-  //       error.code === "P2002"
-  //     ) {
-  //       throw new AppError(
-  //         ErrorCode.CONFLICT,
-  //         "An account with this email already exists",
-  //         409,
-  //       );
-  //     }
-
-  //     throw error;
-  //   }
-  // }
 
   //
   async login(input: LoginInput) {
@@ -218,12 +168,15 @@ export class AuthService {
 
     const expiresAt = new Date(Date.now() + ttlDays * 24 * 60 * 60 * 1000);
 
-    await this.sessions.rotate({
+    const rotated = await this.sessions.rotate({
       id: session.id,
       currentTokenHash: tokenHash,
       newTokenHash: newTokenHash,
       expiresAt,
     });
+    if (rotated.count !== 1) {
+      throw new AppError(ErrorCode.UNAUTHORIZED, "Invalid refresh token", 401);
+    }
 
     const accessToken = await this.createAccessToken(
       session.userId,

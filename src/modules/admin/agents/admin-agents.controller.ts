@@ -15,6 +15,7 @@ import {
 } from "./schemas/create-agent.schema.js";
 import { RolesGuard } from "../../auth/guards/roles.guard.js";
 import { Roles } from "../../auth/decorators/roles.decorator.js";
+import { uuidSchema } from "../../../common/pipes/uuid.schema.js";
 import {
   listAgentsSchema,
   type ListAgentsInput,
@@ -42,21 +43,31 @@ export class AdminAgentController {
     return this.adminAgentsService.listAgents(query);
   }
 
+  @Get(":id")
+  getAgent(@Param("id", new ZodValidationPipe(uuidSchema)) id: string) {
+    return this.adminAgentsService.getAgent(id);
+  }
+
   //
   @Post(":id/suspend")
-  suspendAgent(@Param("id") id: string) {
+  suspendAgent(@Param("id", new ZodValidationPipe(uuidSchema)) id: string) {
     return this.adminAgentsService.suspendAgent(id);
   }
 
   //
   @Post(":id/ban")
-  banAgent(@Param("id") id: string) {
+  banAgent(@Param("id", new ZodValidationPipe(uuidSchema)) id: string) {
     return this.adminAgentsService.banAgent(id);
   }
 
   //
   @Post(":id/activate")
-  activateAgent(@Param("id") id: string) {
+  activateAgent(@Param("id", new ZodValidationPipe(uuidSchema)) id: string) {
     return this.adminAgentsService.activateAgent(id);
+  }
+
+  @Post(":id/revoke-sessions")
+  revokeSessions(@Param("id", new ZodValidationPipe(uuidSchema)) id: string) {
+    return this.adminAgentsService.revokeSessions(id);
   }
 }

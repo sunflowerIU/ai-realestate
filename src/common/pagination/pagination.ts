@@ -1,6 +1,6 @@
 export interface PaginationMeta {
   page: number;
-  limit: number;
+  pageSize: number;
   total: number;
   totalPages: number;
 }
@@ -10,14 +10,14 @@ export interface PaginatedResult<T> {
   pagination: PaginationMeta;
 }
 
-export function paginate<T>(items: T[], page: number, limit: number, total: number): PaginatedResult<T> {
+export function paginate<T>(items: T[], page: number, pageSize: number, total: number): PaginatedResult<T> {
   return {
     items,
     pagination: {
       page,
-      limit,
+      pageSize,
       total,
-      totalPages: total === 0 ? 0 : Math.ceil(total / limit),
+      totalPages: total === 0 ? 0 : Math.ceil(total / pageSize),
     },
   };
 }

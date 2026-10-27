@@ -30,6 +30,11 @@ model User {
   sessions RefreshSession[]
 
   clients Client[]
+  properties Property[]
+  requirements BuyerRequirement[]
+  activities Activity[]
+  visits Visit[]
+  deals Deal[]
 
   createdAt    DateTime   @default(now())
   updatedAt    DateTime   @updatedAt
@@ -53,15 +58,268 @@ model Client {
   id      String @id @default(uuid()) @db.Uuid
   agentId String @db.Uuid
 
-  agent User @relation(fields: [agentId], references: [id], onDelete: Cascade)
+  agent User @relation(fields: [agentId], references: [id], onDelete: Restrict)
 
-  name  String
-  phone String?
+  name           String
+  phone          String?
+  alternatePhone String?
+  email          String?
+  address        String?
+  notes          String?
+  source         String?
+  status         ClientStatus @default(ACTIVE)
+  ownedProperties Property[] @relation("PropertyOwner")
+  requirements BuyerRequirement[] @relation("RequirementClient")
+  activities Activity[] @relation("ActivityClient")
+  visits Visit[] @relation("VisitClient")
+  deals Deal[] @relation("DealBuyer")
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
   @@index([agentId])
+  @@index([agentId, status, createdAt])
+  @@index([agentId, createdAt])
+  @@unique([id, agentId])
+}
+
+enum ClientStatus {
+  ACTIVE
+  INACTIVE
+}
+
+enum PropertyType {
+  HOUSE
+  APARTMENT
+  LAND
+  COMMERCIAL
+  OTHER
+}
+
+enum TransactionType {
+  SALE
+  RENT
+}
+
+enum PropertyStatus {
+  DRAFT
+  ACTIVE
+  UNDER_NEGOTIATION
+  RESERVED
+  SOLD
+  RENTED
+  WITHDRAWN
+  ARCHIVED
+}
+
+enum LandAreaUnit {
+  ROPANI
+  AANA
+  PAISA
+  DAAM
+  BIGHA
+  KATTHA
+  DHUR
+  SQ_FT
+  SQ_M
+}
+
+enum Facing {
+  NORTH
+  NORTH_EAST
+  EAST
+  SOUTH_EAST
+  SOUTH
+  SOUTH_WEST
+  WEST
+  NORTH_WEST
+}
+
+model Property {
+  id String @id @default(uuid()) @db.Uuid
+  agentId String @db.Uuid
+  agent User @relation(fields: [agentId], references: [id], onDelete: Restrict)
+  ownerClientId String? @db.Uuid
+  owner Client? @relation("PropertyOwner", fields: [ownerClientId, agentId], references: [id, agentId], onDelete: Restrict)
+  clientName String?
+
+ latitude  Decimal? @db.Decimal(9, 6)
+  longitude Decimal? @db.Decimal(10, 6)
+
+
+  code String?
+  title String
+  propertyType PropertyType
+  transactionType TransactionType
+  status PropertyStatus @default(DRAFT)
+  province String?
+  district String?
+  municipality String?
+  locality String?
+  priceNpr BigInt?
+  landAreaSqMm BigInt?
+  landAreaValue String?
+  landAreaUnit LandAreaUnit?
+  builtUpAreaSqMm BigInt?
+  bedrooms Int?
+  bathrooms Int?
+  roadAccessMeters Decimal? @db.Decimal(8, 2)
+  facing Facing?
+  description String?
+  remarks String?
+  activities Activity[] @relation("ActivityProperty")
+  visits Visit[] @relation("VisitProperty")
+  deals Deal[] @relation("DealProperty")
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([agentId, code])
+  @@index([agentId, status, createdAt])
+  @@index([agentId, propertyType, transactionType])
+  @@index([agentId, priceNpr])
+  @@index([agentId, district, municipality])
+  @@index([agentId, ownerClientId])
+  @@unique([id, agentId])
+}
+
+enum RequirementStatus {
+  ACTIVE
+  PAUSED
+  CLOSED
+}
+
+model BuyerRequirement {
+  id String @id @default(uuid()) @db.Uuid
+  agentId String @db.Uuid
+  agent User @relation(fields: [agentId], references: [id], onDelete: Restrict)
+  clientId String @db.Uuid
+  client Client @relation("RequirementClient", fields: [clientId, agentId], references: [id, agentId], onDelete: Restrict)
+
+  buyerName String
+  buyerEmail String?
+  buyerPhoneNo String
+
+  title String?
+  transactionType TransactionType
+  propertyType PropertyType
+  preferredLocations String[] @default([])
+  minBudgetNpr BigInt?
+  maxBudgetNpr BigInt?
+  minLandAreaSqMm BigInt?
+  maxLandAreaSqMm BigInt?
+  minBedrooms Int?
+  minRoadAccessMeters Decimal? @db.Decimal(8, 2)
+  notes String?
+  status RequirementStatus @default(ACTIVE)
+  activities Activity[] @relation("ActivityRequirement")
+  visits Visit[] @relation("VisitRequirement")
+  deals Deal[] @relation("DealRequirement")
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([agentId, clientId])
+  @@index([agentId, status, createdAt])
+  @@index([agentId, propertyType, transactionType])
+  @@index([agentId, maxBudgetNpr])
+  @@unique([id, agentId])
+  @@unique([id, agentId, clientId])
+}
+
+enum ActivityType {
+  NOTE
+  CALL
+  MEETING
+  FOLLOW_UP
+  EMAIL
+  MESSAGE
+}
+
+model Activity {
+  id String @id @default(uuid()) @db.Uuid
+  agentId String @db.Uuid
+  agent User @relation(fields: [agentId], references: [id], onDelete: Restrict)
+  clientId String? @db.Uuid
+  client Client? @relation("ActivityClient", fields: [clientId, agentId], references: [id, agentId], onDelete: Restrict)
+  propertyId String? @db.Uuid
+  property Property? @relation("ActivityProperty", fields: [propertyId, agentId], references: [id, agentId], onDelete: Restrict)
+  requirementId String? @db.Uuid
+  requirement BuyerRequirement? @relation("ActivityRequirement", fields: [requirementId, agentId], references: [id, agentId], onDelete: Restrict)
+
+  type ActivityType
+  notes String
+  occurredAt DateTime
+  followUpAt DateTime?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([agentId, occurredAt])
+  @@index([agentId, followUpAt])
+  @@index([agentId, clientId])
+  @@index([agentId, propertyId])
+  @@index([agentId, requirementId])
+}
+
+enum VisitStatus {
+  PLANNED
+  COMPLETED
+  CANCELLED
+}
+
+model Visit {
+  id String @id @default(uuid()) @db.Uuid
+  agentId String @db.Uuid
+  agent User @relation(fields: [agentId], references: [id], onDelete: Restrict)
+  clientId String @db.Uuid
+  client Client @relation("VisitClient", fields: [clientId, agentId], references: [id, agentId], onDelete: Restrict)
+  propertyId String @db.Uuid
+  property Property @relation("VisitProperty", fields: [propertyId, agentId], references: [id, agentId], onDelete: Restrict)
+  requirementId String? @db.Uuid
+  requirement BuyerRequirement? @relation("VisitRequirement", fields: [requirementId, agentId, clientId], references: [id, agentId, clientId], onDelete: Restrict)
+
+  visitedAt DateTime
+  status VisitStatus @default(PLANNED)
+  feedback String?
+  notes String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([agentId, visitedAt])
+  @@index([agentId, clientId, visitedAt])
+  @@index([agentId, propertyId, visitedAt])
+  @@index([agentId, status])
+}
+
+enum DealStatus {
+  OPEN
+  NEGOTIATING
+  WON
+  LOST
+  CANCELLED
+}
+
+model Deal {
+  id String @id @default(uuid()) @db.Uuid
+  agentId String @db.Uuid
+  agent User @relation(fields: [agentId], references: [id], onDelete: Restrict)
+  clientId String @db.Uuid
+  client Client @relation("DealBuyer", fields: [clientId, agentId], references: [id, agentId], onDelete: Restrict)
+  propertyId String @db.Uuid
+  property Property @relation("DealProperty", fields: [propertyId, agentId], references: [id, agentId], onDelete: Restrict)
+  requirementId String? @db.Uuid
+  requirement BuyerRequirement? @relation("DealRequirement", fields: [requirementId, agentId, clientId], references: [id, agentId, clientId], onDelete: Restrict)
+
+  status DealStatus @default(OPEN)
+  agreedPriceNpr BigInt?
+  commissionNpr BigInt?
+  notes String?
+  closedAt DateTime?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([agentId, status, createdAt])
+  @@index([agentId, clientId])
+  @@index([agentId, propertyId])
+  @@index([agentId, createdAt])
 }
 
 

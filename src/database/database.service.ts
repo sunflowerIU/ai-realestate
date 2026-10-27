@@ -19,6 +19,34 @@ export class DatabaseService implements OnApplicationShutdown {
     return this.prisma.refreshSession;
   }
 
+  get client(): PrismaClient["client"] {
+    return this.prisma.client;
+  }
+
+  get property(): PrismaClient["property"] {
+    return this.prisma.property;
+  }
+
+  get buyerRequirement(): PrismaClient["buyerRequirement"] {
+    return this.prisma.buyerRequirement;
+  }
+
+  get activity(): PrismaClient["activity"] {
+    return this.prisma.activity;
+  }
+
+  get visit(): PrismaClient["visit"] {
+    return this.prisma.visit;
+  }
+
+  get deal(): PrismaClient["deal"] {
+    return this.prisma.deal;
+  }
+
+  get transaction(): PrismaClient["$transaction"] {
+    return this.prisma.$transaction.bind(this.prisma);
+  }
+
   async ping(): Promise<void> {
     await this.prisma.$queryRaw`SELECT 1`;
   }

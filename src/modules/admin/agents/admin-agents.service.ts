@@ -3,7 +3,8 @@ import { UsersRepository } from "../../users/users.repository.js";
 import { PasswordService } from "../../auth/password.service.js";
 import { AppError } from "../../../common/errors/app-error.js";
 import { ErrorCode } from "../../../common/errors/error-code.js";
-import { RefreshSessionRepository } from "../../auth/refresh-session-repository.js";
+import { Prisma } from "../../../database/prisma-client.js";
+import { paginate } from "../../../common/pagination/pagination.js";
 import type { CreateAgentInput } from "./schemas/create-agent.schema.js";
 import type { ListAgentsInput } from "./schemas/list-agents.schema.js";
 import { toPagination } from "../../../common/pagination/pagination.schema.js";
@@ -13,7 +14,6 @@ export class AdminAgentService {
   constructor(
     private readonly usersRepository: UsersRepository,
     private readonly passwordService: PasswordService,
-    private readonly sessions: RefreshSessionRepository,
   ) {}
 
   //
@@ -31,13 +31,17 @@ export class AdminAgentService {
     }
     const passwordHash = await this.passwordService.hash(input.password);
 
-    const user = await this.usersRepository.create({
-      name: input.name.trim(),
-      email,
-      passwordHash,
-      role: "AGENT",
-      status: "ACTIVE",
-    });
+    let user;
+    try {
+      user = await this.usersRepository.create({
+        name: input.name.trim(), email, passwordHash, role: "AGENT", status: "ACTIVE",
+      });
+    } catch (error) {
+      if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === "P2002") {
+        throw new AppError(ErrorCode.CONFLICT, "An account with this email already exists", 409);
+      }
+      throw error;
+    }
 
     return {
       id: user.id,
@@ -56,68 +60,38 @@ export class AdminAgentService {
     const [agents, total] = await Promise.all([
       this.usersRepository.findAgents({
         search: input.search ?? "",
+        ...(input.status ? { status: input.status } : {}),
         take: pagination.take,
         skip: pagination.skip,
       }),
-      this.usersRepository.countAgents(input.search),
+      this.usersRepository.countAgents(input.search, input.status),
     ]);
 
-    return {
-      agents,
-      pagination: {
-        page: pagination.page,
-        pageSize: pagination.pageSize,
-        total,
-        totalPages: Math.ceil(total / pagination.pageSize),
-      },
-    };
+    return paginate(agents, pagination.page, pagination.pageSize, total);
   }
 
-  //
-  private async ensureAgent(id: string) {
-    const user = await this.usersRepository.findById(id);
+  async getAgent(id: string) {
+    const agent = await this.usersRepository.findAgent(id);
+    if (!agent) throw new AppError(ErrorCode.NOT_FOUND, "Agent not found", 404);
+    return agent;
+  }
 
-    if (!user || user.role !== "AGENT") {
-      throw new AppError(ErrorCode.NOT_FOUND, "Agent not found", 404);
-    }
-
-    return user;
+  revokeSessions(id: string) {
+    return this.usersRepository.revokeAgentSessions(id);
   }
 
   //
   async suspendAgent(id: string) {
-    await this.ensureAgent(id);
-
-    await this.usersRepository.updateStatus(id, "SUSPENDED");
-
-    await this.sessions.revokeAllForUser(id);
-
-    return {
-      success: true,
-    };
+    return this.usersRepository.setAgentStatus(id, "SUSPENDED");
   }
 
   //
   async banAgent(id: string) {
-    await this.ensureAgent(id);
-
-    await this.usersRepository.updateStatus(id, "BANNED");
-
-    await this.sessions.revokeAllForUser(id);
-
-    return {
-      success: true,
-    };
+    return this.usersRepository.setAgentStatus(id, "BANNED");
   }
 
   //
   async activateAgent(id: string) {
-    await this.ensureAgent(id);
-
-    await this.usersRepository.updateStatus(id, "ACTIVE");
-
-    return {
-      success: true,
-    };
+    return this.usersRepository.setAgentStatus(id, "ACTIVE");
   }
 }

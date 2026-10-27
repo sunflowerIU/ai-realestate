@@ -11,6 +11,12 @@ import { createLoggerConfig } from "./logging.js";
 import { AuthModule } from "./modules/auth/auth.module.js";
 import { UsersModule } from "./modules/users/users.module.js";
 import { AdminAgentsModule } from "./modules/admin/agents/admin-agents.module.js";
+import { ClientsModule } from "./modules/clients/clients.module.js";
+import { PropertiesModule } from "./modules/properties/properties.module.js";
+import { RequirementsModule } from "./modules/requirements/requirements.module.js";
+import { ActivitiesModule } from "./modules/activities/activities.module.js";
+import { VisitsModule } from "./modules/visits/visits.module.js";
+import { DealsModule } from "./modules/deals/deals.module.js";
 
 @Module({
   imports: [
@@ -30,6 +36,12 @@ import { AdminAgentsModule } from "./modules/admin/agents/admin-agents.module.js
     AuthModule,
     UsersModule,
     AdminAgentsModule,
+    ClientsModule,
+    PropertiesModule,
+    RequirementsModule,
+    ActivitiesModule,
+    VisitsModule,
+    DealsModule,
   ],
   providers: [{ provide: APP_FILTER, useClass: GlobalExceptionFilter }],
 })
