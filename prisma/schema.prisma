@@ -188,21 +188,36 @@ enum RequirementStatus {
   CLOSED
 }
 
+model RequirementPreferredLocation{
+  id String @id @default(uuid()) @db.Uuid
+
+  requirementId String @db.Uuid
+  requirement BuyerRequirement @relation(fields: [requirementId], references: [id], onDelete: Cascade)
+
+  province     String
+  district     String
+  municipality String
+  localities   String[] @default([])
+
+  @@index([requirementId])
+
+}
+
 model BuyerRequirement {
   id String @id @default(uuid()) @db.Uuid
   agentId String @db.Uuid
   agent User @relation(fields: [agentId], references: [id], onDelete: Restrict)
-  clientId String @db.Uuid
-  client Client @relation("RequirementClient", fields: [clientId, agentId], references: [id, agentId], onDelete: Restrict)
+  clientId String? @db.Uuid
+  client Client? @relation("RequirementClient", fields: [clientId, agentId], references: [id, agentId], onDelete: Restrict)
 
-  buyerName String
+  buyerName String?
   buyerEmail String?
   buyerPhoneNo String
 
   title String?
   transactionType TransactionType
   propertyType PropertyType
-  preferredLocations String[] @default([])
+  preferredLocations RequirementPreferredLocation[] 
   minBudgetNpr BigInt?
   maxBudgetNpr BigInt?
   minLandAreaSqMm BigInt?

@@ -11,17 +11,27 @@ import {
 
 const status = z.enum(["ACTIVE", "PAUSED", "CLOSED"]);
 const location = z.string().trim().min(1).max(100);
+const placeName = z.string().trim().min(1).max(100);
+
+const preferredLocationSchema = z
+  .object({
+    province: placeName,
+    district: placeName,
+    municipality: placeName,
+    localities: z.array(placeName).max(20).default([]),
+  })
+  .strict();
 
 export const createRequirementSchema = z
   .object({
-    clientId: uuidSchema,
+    clientId: uuidSchema.nullable().optional(),
     buyerName: z.string().max(50).optional(),
     buyerEmail: z.email(),
     buyerPhoneNo: z.string().min(1).max(10, "Phone number must be 10 digits"),
     title: z.string().trim().min(1).max(200).nullable().optional(),
     transactionType: transactionTypeSchema,
     propertyType: propertyTypeSchema,
-    preferredLocations: z.array(location).max(20).default([]),
+    preferredLocations: z.array(preferredLocationSchema).max(20).default([]),
     minBudgetNpr: wholeNprSchema.nullable().optional(),
     maxBudgetNpr: wholeNprSchema.nullable().optional(),
     minLandAreaSqM: decimalSchema.nullable().optional(),
@@ -37,7 +47,7 @@ export const updateRequirementSchema = createRequirementSchema
   .omit({ preferredLocations: true, clientId: true })
   .partial()
   .extend({
-    preferredLocations: z.array(location).max(20).optional(),
+    preferredLocations: z.array(preferredLocationSchema).max(20).optional(),
   })
   .refine(
     (input) => Object.keys(input).length > 0,
@@ -54,6 +64,7 @@ export const listRequirementsSchema = paginationQuerySchema
     budgetAtLeastNpr: wholeNprSchema.optional(),
     budgetAtMostNpr: wholeNprSchema.optional(),
     search: z.string().trim().min(1).max(100).optional(),
+    searchBy: z.enum(["details", "location", "client"]).default("details"),
     sort: z.enum(["newest", "oldest"]).default("newest"),
   })
   .strict();

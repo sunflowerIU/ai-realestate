@@ -47,6 +47,10 @@ export class DatabaseService implements OnApplicationShutdown {
     return this.prisma.$transaction.bind(this.prisma);
   }
 
+  get queryRaw(): PrismaClient["$queryRaw"] {
+    return this.prisma.$queryRaw.bind(this.prisma);
+  }
+
   async ping(): Promise<void> {
     await this.prisma.$queryRaw`SELECT 1`;
   }
