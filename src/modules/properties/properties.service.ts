@@ -52,7 +52,9 @@ export class PropertiesService {
         title: input.title,
         propertyType: input.propertyType,
         transactionType: input.transactionType,
-        status: input.status ?? "DRAFT",
+        status: input.status ?? "ACTIVE",
+        latitude: input.latitude ?? null,
+        longitude: input.longitude ?? null,
         code: input.code ?? null,
         ownerClientId: input.ownerClientId ?? null,
         province: input.province ?? null,
@@ -159,6 +161,10 @@ export class PropertiesService {
           ? { description: input.description }
           : {}),
         ...(input.remarks !== undefined ? { remarks: input.remarks } : {}),
+        ...(input.latitude !== undefined ? { latitude: input.latitude } : {}),
+        ...(input.longitude !== undefined
+          ? { longitude: input.longitude }
+          : {}),
       };
       const result = await this.properties.update(agentId, id, data);
       if (result.count !== 1) throw new NotFoundError("Property not found");

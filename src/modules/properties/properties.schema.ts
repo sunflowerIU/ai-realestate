@@ -17,7 +17,6 @@ const nullableText = (max: number) => text(max).nullable().optional();
 const propertyType = propertyTypeSchema;
 const transactionType = transactionTypeSchema;
 const propertyStatus = z.enum([
-  "DRAFT",
   "ACTIVE",
   "UNDER_NEGOTIATION",
   "RESERVED",
@@ -79,6 +78,15 @@ export const createPropertySchema = z
     facing: facingTypes.optional(),
     description: nullableText(10000),
     remarks: nullableText(5000),
+    latitude: z
+      .number()
+      .min(-90, { message: "Latitude must be between -90 and 90 degrees" })
+      .max(90, { message: "Latitude must be between -90 and 90 degrees" }),
+
+    longitude: z
+      .number()
+      .min(-180, { message: "Longitude must be between -180 and 180 degrees" })
+      .max(180, { message: "Longitude must be between -180 and 180 degrees" }),
   })
   .strict()
   .superRefine((data, ctx) => {

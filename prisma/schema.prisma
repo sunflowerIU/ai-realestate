@@ -102,7 +102,6 @@ enum TransactionType {
 }
 
 enum PropertyStatus {
-  DRAFT
   ACTIVE
   UNDER_NEGOTIATION
   RESERVED
@@ -151,7 +150,7 @@ model Property {
   title String
   propertyType PropertyType
   transactionType TransactionType
-  status PropertyStatus @default(DRAFT)
+  status PropertyStatus @default(ACTIVE)
   province String?
   district String?
   municipality String?
