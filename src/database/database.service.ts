@@ -8,7 +8,9 @@ export class DatabaseService implements OnApplicationShutdown {
   private readonly prisma: PrismaClient;
 
   constructor(@Inject(ConfigService) config: ConfigService<Environment, true>) {
-    this.prisma = createPrismaClient(config.get("DATABASE_URL", { infer: true }));
+    this.prisma = createPrismaClient(
+      config.get("DATABASE_URL", { infer: true }),
+    );
   }
 
   get user(): PrismaClient["user"] {
@@ -41,6 +43,9 @@ export class DatabaseService implements OnApplicationShutdown {
 
   get deal(): PrismaClient["deal"] {
     return this.prisma.deal;
+  }
+  get aiUsage(): PrismaClient["aiUsage"] {
+    return this.prisma.aiUsage;
   }
 
   get transaction(): PrismaClient["$transaction"] {

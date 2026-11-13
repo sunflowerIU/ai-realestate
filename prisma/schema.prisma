@@ -36,6 +36,9 @@ model User {
   visits Visit[]
   deals Deal[]
 
+  creditWallet CreditWallet?
+  aiUsages AiUsage[]
+
   createdAt    DateTime   @default(now())
   updatedAt    DateTime   @updatedAt
 }
@@ -337,6 +340,121 @@ model Deal {
 }
 
 
+enum CreditLedgerType {
+  TOP_UP
+  AI_CHARGE
+  REFUND
+  ADJUSTMENT
+}
 
 
+enum CreditReservationStatus {
+  ACTIVE
+  SETTLED
+  RELEASED
+  EXPIRED
+}
 
+enum AiOperation {
+  EXCEL_SCHEMA_MAPPING
+  EXCEL_AMBIGUITY_RESOLUTION
+
+  PROPERTY_SEARCH_INTENT
+  MATCH_EXPLANATION
+  SUMMARY
+}
+
+model CreditWallet {
+  id String @id @default(uuid()) @db.Uuid
+
+  agentId String @unique @db.Uuid
+  agent   User  @relation(fields: [agentId],references: [id],onDelete: Restrict)
+
+  availableCredits BigInt @default(0)
+  reservedCredits  BigInt @default(0)
+
+  ledgerEntries CreditLedger[]
+  reservations CreditReservation[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+
+// credit ledger eg: TOP_UP       +1000
+// AI_CHARGE      -13
+// TOP_UP        +500
+// REFUND          +5
+model CreditLedger {
+  id String @id @default(uuid()) @db.Uuid
+
+  walletId String @db.Uuid
+  wallet   CreditWallet @relation(fields: [walletId],references: [id],onDelete: Restrict)
+
+  type CreditLedgerType
+
+  // positive = credit added
+  // negative = credit spent
+  amount BigInt
+
+  referenceId String?
+  description String?
+
+  createdAt DateTime @default(now())
+
+  @@index([walletId, createdAt])
+  @@index([referenceId])
+}
+
+
+model CreditReservation {
+  id String @id @default(uuid()) @db.Uuid
+
+  walletId String @db.Uuid
+  wallet   CreditWallet @relation(fields: [walletId],references: [id],onDelete: Restrict)
+
+  operation AiOperation
+
+  reservedCredits BigInt
+  chargedCredits  BigInt?
+
+  status CreditReservationStatus @default(ACTIVE)
+
+  idempotencyKey String @unique
+
+  expiresAt DateTime
+  settledAt DateTime?
+  releasedAt DateTime?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([walletId, status])
+  @@index([expiresAt])
+}
+
+model AiUsage {
+  id String @id @default(uuid()) @db.Uuid
+
+  agentId String @db.Uuid
+  agent   User   @relation(fields: [agentId], references: [id], onDelete: Restrict)
+
+  operation AiOperation
+
+  provider String
+  model    String
+
+  inputTokens  Int?
+  outputTokens Int?
+
+  creditsCharged BigInt
+
+  providerRequestId String?
+  latencyMs         Int?
+
+  createdAt DateTime @default(now())
+
+  @@index([agentId, createdAt])
+  @@index([operation, createdAt])
+  @@index([provider, model, createdAt])
+}

@@ -16,6 +16,9 @@ const environmentSchema = z.object({
   JWT_ACCESS_TTL: z.string().default("15m"),
 
   REFRESH_TOKEN_TTL_DAYS: z.coerce.number().int().positive().default(30),
+
+  GROQ_API_KEY: z.string().min(1),
+  GEMINI_API_KEY: z.string().min(1),
 });
 
 export type Environment = z.infer<typeof environmentSchema>;

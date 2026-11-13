@@ -30,8 +30,18 @@ export class UsersRepository {
     role: USER_ROLE;
     status: USER_STATUS;
   }) {
-    return this.db.user.create({
-      data,
+    return this.db.transaction(async (tx) => {
+      const agent = await tx.user.create({ data });
+
+      //create wallet for that user
+      await tx.creditWallet.create({
+        data: {
+          agentId: agent.id,
+          availableCredits: 0,
+        },
+      });
+
+      return agent;
     });
   }
 
