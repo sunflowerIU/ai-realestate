@@ -8,12 +8,15 @@ import { paginate } from "../../../common/pagination/pagination.js";
 import type { CreateAgentInput } from "./schemas/create-agent.schema.js";
 import type { ListAgentsInput } from "./schemas/list-agents.schema.js";
 import { toPagination } from "../../../common/pagination/pagination.schema.js";
+import type { CreditService } from "../../credits/credit.service.js";
+import type { TopUpCreditsInput } from "./schemas/top-up-credits.schema.js";
 
 @Injectable()
 export class AdminAgentService {
   constructor(
     private readonly usersRepository: UsersRepository,
     private readonly passwordService: PasswordService,
+    private readonly creditService: CreditService,
   ) {}
 
   //
@@ -34,11 +37,22 @@ export class AdminAgentService {
     let user;
     try {
       user = await this.usersRepository.create({
-        name: input.name.trim(), email, passwordHash, role: "AGENT", status: "ACTIVE",
+        name: input.name.trim(),
+        email,
+        passwordHash,
+        role: "AGENT",
+        status: "ACTIVE",
       });
     } catch (error) {
-      if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === "P2002") {
-        throw new AppError(ErrorCode.CONFLICT, "An account with this email already exists", 409);
+      if (
+        error instanceof Prisma.PrismaClientKnownRequestError &&
+        error.code === "P2002"
+      ) {
+        throw new AppError(
+          ErrorCode.CONFLICT,
+          "An account with this email already exists",
+          409,
+        );
       }
       throw error;
     }
@@ -70,12 +84,30 @@ export class AdminAgentService {
     return paginate(agents, pagination.page, pagination.pageSize, total);
   }
 
+  //
   async getAgent(id: string) {
     const agent = await this.usersRepository.findAgent(id);
     if (!agent) throw new AppError(ErrorCode.NOT_FOUND, "Agent not found", 404);
     return agent;
   }
 
+  //
+  async topUpCredits(agentId: string, input: TopUpCreditsInput) {
+    const agent = await this.usersRepository.findById(agentId);
+
+    if (!agent || agent.role !== "AGENT") {
+      throw new AppError(ErrorCode.NOT_FOUND, "Agent not found", 404);
+    }
+
+    return this.creditService.topup({
+      agentId,
+      credits: input.credits,
+      ...(input.referenceId && { referenceId: input.referenceId }),
+      ...(input.description && { description: input.description }),
+    });
+  }
+
+  //
   revokeSessions(id: string) {
     return this.usersRepository.revokeAgentSessions(id);
   }

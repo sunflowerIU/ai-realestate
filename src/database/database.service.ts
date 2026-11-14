@@ -44,8 +44,16 @@ export class DatabaseService implements OnApplicationShutdown {
   get deal(): PrismaClient["deal"] {
     return this.prisma.deal;
   }
+
+  ///ai
   get aiUsage(): PrismaClient["aiUsage"] {
     return this.prisma.aiUsage;
+  }
+  get creditWallet(): PrismaClient["creditWallet"] {
+    return this.prisma.creditWallet;
+  }
+  get creditReservation(): PrismaClient["creditReservation"] {
+    return this.prisma.creditReservation;
   }
 
   get transaction(): PrismaClient["$transaction"] {

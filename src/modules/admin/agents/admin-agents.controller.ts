@@ -20,6 +20,10 @@ import {
   listAgentsSchema,
   type ListAgentsInput,
 } from "./schemas/list-agents.schema.js";
+import {
+  topUpCreditsSchema,
+  type TopUpCreditsInput,
+} from "./schemas/top-up-credits.schema.js";
 
 @Controller("admin/agents")
 @UseGuards(RolesGuard)
@@ -43,6 +47,7 @@ export class AdminAgentController {
     return this.adminAgentsService.listAgents(query);
   }
 
+  //
   @Get(":id")
   getAgent(@Param("id", new ZodValidationPipe(uuidSchema)) id: string) {
     return this.adminAgentsService.getAgent(id);
@@ -66,8 +71,18 @@ export class AdminAgentController {
     return this.adminAgentsService.activateAgent(id);
   }
 
+  //
   @Post(":id/revoke-sessions")
   revokeSessions(@Param("id", new ZodValidationPipe(uuidSchema)) id: string) {
     return this.adminAgentsService.revokeSessions(id);
+  }
+
+  //
+  @Post(":/id/credits/top-up")
+  topUpCredits(
+    @Param("id") id: string,
+    @Body(new ZodValidationPipe(topUpCreditsSchema)) input: TopUpCreditsInput,
+  ) {
+    return this.adminAgentsService.topUpCredits(id, input);
   }
 }

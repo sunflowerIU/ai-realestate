@@ -37,7 +37,8 @@ export class UsersRepository {
       await tx.creditWallet.create({
         data: {
           agentId: agent.id,
-          availableCredits: 0,
+          availableCredits: 0n,
+          reservedCredits: 0n,
         },
       });
 
