@@ -5,10 +5,10 @@ import { AppError } from "../../../common/errors/app-error.js";
 import { ErrorCode } from "../../../common/errors/error-code.js";
 import { Prisma } from "../../../database/prisma-client.js";
 import { paginate } from "../../../common/pagination/pagination.js";
+import { toPagination } from "../../../common/pagination/pagination.schema.js";
+import { CreditService } from "../../credits/credit.service.js";
 import type { CreateAgentInput } from "./schemas/create-agent.schema.js";
 import type { ListAgentsInput } from "./schemas/list-agents.schema.js";
-import { toPagination } from "../../../common/pagination/pagination.schema.js";
-import type { CreditService } from "../../credits/credit.service.js";
 import type { TopUpCreditsInput } from "./schemas/top-up-credits.schema.js";
 
 @Injectable()

@@ -19,6 +19,18 @@ const environmentSchema = z.object({
 
   GROQ_API_KEY: z.string().min(1),
   GEMINI_API_KEY: z.string().min(1),
+
+  // storage
+  MINIO_ROOT_USER: z.string().min(3),
+  MINIO_ROOT_PASSWORD: z.string().min(8),
+
+  STORAGE_ENDPOINT: z.url(),
+  STORAGE_REGION: z.string().min(1),
+
+  STORAGE_ACCESS_KEY: z.string().min(1),
+  STORAGE_SECRET_KEY: z.string().min(1),
+
+  STORAGE_BUCKET: z.string().min(3),
 });
 
 export type Environment = z.infer<typeof environmentSchema>;

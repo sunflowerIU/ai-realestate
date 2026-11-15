@@ -1,5 +1,5 @@
 import { Injectable } from "@nestjs/common";
-import type { DatabaseService } from "../../database/database.service.js";
+import { DatabaseService } from "../../database/database.service.js";
 import type { AiOperation } from "../../generated/prisma/enums.js";
 
 @Injectable()

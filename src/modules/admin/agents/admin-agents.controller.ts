@@ -78,7 +78,7 @@ export class AdminAgentController {
   }
 
   //
-  @Post(":/id/credits/top-up")
+  @Post(":id/credits/top-up")
   topUpCredits(
     @Param("id") id: string,
     @Body(new ZodValidationPipe(topUpCreditsSchema)) input: TopUpCreditsInput,

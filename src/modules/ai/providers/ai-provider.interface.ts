@@ -1,7 +1,7 @@
 import type { AiProviderName } from "../types/ai-provider-name.js";
 import type { StructuredOutputDefinition } from "../types/structured-output.js";
 
-export interface ProviderStructuredRequest<T> {
+export interface AiProviderRequest<T> {
   model: string;
   systemPrompt?: string;
   prompt: string;
@@ -11,7 +11,7 @@ export interface ProviderStructuredRequest<T> {
   output: StructuredOutputDefinition<T>;
 }
 
-export interface ProviderResult<T> {
+export interface AiProviderResult<T> {
   data: T;
   provider: AiProviderName;
   model: string;
@@ -28,6 +28,6 @@ export interface AiProvider {
   readonly name: AiProviderName;
 
   generateStructured<T>(
-    request: ProviderStructuredRequest<T>,
-  ): Promise<ProviderResult<T>>;
+    request: AiProviderRequest<T>,
+  ): Promise<AiProviderResult<T>>;
 }

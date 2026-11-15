@@ -1,10 +1,10 @@
 import { Controller, Get } from "@nestjs/common";
 import { Roles } from "../auth/decorators/roles.decorator.js";
-import type { CreditService } from "./credit.service.js";
+import { CreditService } from "./credit.service.js";
 import { CurrentUser } from "../auth/decorators/current-user.decorator.js";
 import type { AuthenticatedUser } from "../auth/types/authenticated-user.js";
 
-@Controller()
+@Controller("credits")
 @Roles("AGENT")
 export class creditsController {
   constructor(private readonly creditService: CreditService) {}

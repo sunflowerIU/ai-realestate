@@ -17,6 +17,8 @@ import { RequirementsModule } from "./modules/requirements/requirements.module.j
 import { ActivitiesModule } from "./modules/activities/activities.module.js";
 import { VisitsModule } from "./modules/visits/visits.module.js";
 import { DealsModule } from "./modules/deals/deals.module.js";
+import { AiModule } from "./modules/ai/ai.module.js";
+import { ImportsModule } from "./modules/imports/excel/excel-import.module.js";
 
 @Module({
   imports: [
@@ -42,6 +44,8 @@ import { DealsModule } from "./modules/deals/deals.module.js";
     ActivitiesModule,
     VisitsModule,
     DealsModule,
+    AiModule,
+    ImportsModule,
   ],
   providers: [{ provide: APP_FILTER, useClass: GlobalExceptionFilter }],
 })

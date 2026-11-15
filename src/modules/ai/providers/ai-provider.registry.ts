@@ -1,8 +1,8 @@
 import { Injectable } from "@nestjs/common";
 import type { AiProviderName } from "../types/ai-provider-name.js";
 import type { AiProvider } from "./ai-provider.interface.js";
-import type { GroqProvider } from "./groq.provider.js";
-import type { GeminiProvider } from "./gemini.provider.js";
+import { GroqProvider } from "./groq.provider.js";
+import { GeminiProvider } from "./gemini.provider.js";
 
 @Injectable()
 export class AiProviderRegistry {

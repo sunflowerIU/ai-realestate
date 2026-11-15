@@ -41,6 +41,8 @@ model User {
 
   createdAt    DateTime   @default(now())
   updatedAt    DateTime   @updatedAt
+
+  imports ImportJob[]
 }
 
 model RefreshSession {
@@ -457,4 +459,56 @@ model AiUsage {
   @@index([agentId, createdAt])
   @@index([operation, createdAt])
   @@index([provider, model, createdAt])
+}
+
+
+
+enum ImportType {
+  EXCEL
+}
+
+enum ImportJobStatus {
+  AWAITING_UPLOAD
+  UPLOADED
+  QUEUED
+  PROCESSING
+  REVIEW_REQUIRED
+  COMPLETED
+  FAILED
+  CANCELLED
+  EXPIRED
+}
+
+model ImportJob {
+  id      String @id @default(uuid()) @db.Uuid
+  agentId String @db.Uuid
+
+  agent User @relation(fields: [agentId],references: [id],onDelete: Restrict)
+
+  type   ImportType      @default(EXCEL)
+  status ImportJobStatus @default(AWAITING_UPLOAD)
+
+  objectKey        String @unique
+  originalFileName String
+  contentType      String
+
+  fileSizeBytes BigInt?
+
+  uploadedAt  DateTime?
+  startedAt   DateTime?
+  completedAt DateTime?
+
+  // Temporary upload should not live forever
+  expiresAt DateTime
+
+  errorCode    String?
+  errorMessage String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([agentId, status, createdAt])
+  @@index([agentId, createdAt])
+  @@index([expiresAt])
+  @@unique([id, agentId])
 }

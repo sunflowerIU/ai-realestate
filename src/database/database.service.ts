@@ -56,6 +56,12 @@ export class DatabaseService implements OnApplicationShutdown {
     return this.prisma.creditReservation;
   }
 
+  //excel
+  get importJob(): PrismaClient["importJob"] {
+    return this.prisma.importJob;
+  }
+
+  ///other stuffs
   get transaction(): PrismaClient["$transaction"] {
     return this.prisma.$transaction.bind(this.prisma);
   }

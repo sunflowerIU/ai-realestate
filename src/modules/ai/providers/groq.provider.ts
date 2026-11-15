@@ -2,11 +2,11 @@ import { Injectable } from "@nestjs/common";
 import Groq from "groq-sdk";
 import type {
   AiProvider,
-  ProviderResult,
-  ProviderStructuredRequest,
+  AiProviderRequest,
+  AiProviderResult,
 } from "./ai-provider.interface.js";
 import { AI_PROVIDER } from "../types/ai-provider-name.js";
-import type { ConfigService } from "@nestjs/config";
+import { ConfigService } from "@nestjs/config";
 
 @Injectable()
 export class GroqProvider implements AiProvider {
@@ -21,8 +21,8 @@ export class GroqProvider implements AiProvider {
   }
 
   async generateStructured<T>(
-    request: ProviderStructuredRequest<T>,
-  ): Promise<ProviderResult<T>> {
+    request: AiProviderRequest<T>,
+  ): Promise<AiProviderResult<T>> {
     const startedAt = Date.now();
     const completion = await this.client.chat.completions.create({
       model: request.model,
